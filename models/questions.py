@@ -4,7 +4,17 @@ from sqlalchemy import String, Text, DateTime, Boolean, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
-from models.category import Category
+
+
+class Category(Base):
+    __tablename__ = "category"
+
+    name: Mapped[str] = mapped_column(
+        String(150),
+        nullable=False
+    )
+    questions: Mapped[list["Question"]] = relationship("Question", back_populates="category")
+
 
 
 class Question(Base):
@@ -45,6 +55,8 @@ class Question(Base):
         cascade="all, delete-orphan",
         uselist=False
     )
+    category_id: Mapped[int] = mapped_column(Integer, ForeignKey('category.id'), nullable=False)
+    category: Mapped["Category"] = relationship("Category", back_populates="questions")
 
 
 class QuestionOption(Base):
