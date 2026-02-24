@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy import select
 from pydantic import ValidationError
+from sqlalchemy.orm import selectinload
 
 from core.db import db
 from models import Question
+from models.categories import Category
 from schemas.questions import (
     QuestionList,
     QuestionRetrieve,
@@ -28,7 +30,7 @@ questions_bp = Blueprint(
 def get_all_questions():
     # TODO-LIST:
     # 1. Сдкелть запрос на получения всех оъектов из базы
-    stmt = select(Question)
+    stmt = select(Question).otions(selectinload((Question.category)))
     result = db.session.execute(stmt).scalars()
 
     # 2. Как-то преобразовать сложный объект ORM в простой словарик python
@@ -87,6 +89,14 @@ def create_new_question():
                 "error": e.errors()
             }
         ), 400
+
+    category = None
+    if validated_data.category_id is not None:
+        category = db.session.get(Category, validated_data.category_id)
+        if category is None:
+            return jsonify(
+                {"error": "Category not found"}
+            ), 404
 
     try:
         # 3. Попытаться создать новый объект

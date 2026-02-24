@@ -16,11 +16,21 @@ class BaseSchema(BaseModel):
     )
 
 
+class CategoryBase(BaseSchema):
+    name: str = Field(..., min_length=5, max_length=150)
+
+
+class CategoryResponse(CategoryBase):
+    id: int
+
+
 class QuestionBase(BaseSchema):
     title: str = Field(..., min_length=15, max_length=150)
     description: str | None = Field(default=None, min_length=20, max_length=750)
     start_date: datetime
     end_date: datetime
+
+    category_id: int | None
 
 
     @model_validator(mode="after")
@@ -42,6 +52,8 @@ class QuestionUpdateRequest(BaseSchema):
     end_date: datetime | None
     is_active: bool | None
 
+    category_id: int | None
+
 
     @model_validator(mode="after")
     def validate_dates(self):
@@ -57,6 +69,8 @@ class QuestionRetrieve(QuestionBase):
     id: int
     is_active: bool
 
+    category: CategoryResponse
+
 
 # Как мы хотим получать список всех Question
 class QuestionList(BaseSchema):
@@ -65,6 +79,12 @@ class QuestionList(BaseSchema):
     start_date: datetime
     is_active: bool
 
+    category: CategoryResponse
+
 
 class QuestionCreateResponse(QuestionRetrieve):
     ...
+
+
+class CategoryUpdate(BaseSchema):
+    name: str | None = Field(default=None, min_length=5, max_length=150)
